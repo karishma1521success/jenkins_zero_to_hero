@@ -14,3 +14,5 @@ pipeline {
         }
     }
 }
+
+// This is a sample of Jenkinsfile which lead to create a jenkins pipeline for CI
