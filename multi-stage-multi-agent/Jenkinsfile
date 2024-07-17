@@ -1,0 +1,41 @@
+// # Multi Stage Multi Agent
+
+// Set up a multi stage jenkins pipeline where each stage is run on a unique agent. This is a very useful approach when you have multi language application or application that has conflicting dependencies.
+pipeline {
+    //no agent
+    agent none
+
+    stages {
+        stage('front-end') {
+            agent {
+                docker { image 'node-16-alpine' }
+            }
+            steps {
+                sh 'node --version'
+            }
+        }
+
+        stage ('backend') {
+            agent {
+                docker { image 'maven:3.8.1-adoptopenjdk-11' }
+            }
+
+            steps {
+                sh 'mvn  --version'
+            }
+        }
+
+        stage ('database') {
+            agent {
+                docker { image 'mysql:9.0'}
+            }
+
+            steps  {
+                echo "database image created"
+            }
+        }
+    }
+}
+
+//This is a 3 tier strucutre (which has frontend, backend and database)
+// It has 3 steps and for each step it has its own agent that's why it is called multi-stage-mutli-agent
