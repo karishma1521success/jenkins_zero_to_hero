@@ -1,0 +1,57 @@
+pipeline {
+    agent any
+    
+    environment {
+        DOCKER_IMAGE = 'django_docker_image'
+        APP_PORT = '8000'
+        DOCKER_CONTAINER = 'django-notes-app'
+    }
+    
+    stages {
+        stage('Checkout') {
+            steps {
+                echo 'Hello Checkout'
+                git url: "https://github.com/LondheShubham153/django-notes-app.git" , branch: "main"
+            }
+        }
+        stage('Build') {
+            steps {
+                echo 'Hello Build'
+                sh "whoami"
+                sh "docker build -t $DOCKER_IMAGE:latest ."
+                sh "docker images"
+                
+            }
+        }
+        stage('Test') {
+            steps {
+                echo 'Hello Test'
+            }
+        }
+        stage('Push t0 dockerhub') {
+            steps {
+                echo 'Hello Push stage'
+                withCredentials([usernamePassword(credentialsId: 'dockerHubCred' , usernameVariable: 'DOCKER_USERNAME' , passwordVariable: 'DOCKER_PASSWORD'  )]){
+                    sh '''
+                        docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+                        docker image tag $DOCKER_IMAGE:latest $DOCKER_USERNAME/$DOCKER_IMAGE:latest
+                        docker push $DOCKER_USERNAME/$DOCKER_IMAGE:latest
+                    '''
+                }
+            }
+        }
+        stage('Deploy') {
+            steps {
+                echo 'Hello Deploy'
+                sh '''
+                    docker stop $DOCKER_CONTAINER || true
+                    docker rm $DOCKER_CONTAINER || true
+                    docker run -d -p $APP_PORT:$APP_PORT --name $DOCKER_CONTAINER $DOCKER_IMAGE
+                    docker ps
+                    docker logs $DOCKER_CONTAINER
+                '''
+            }
+        }
+    }
+}
+
